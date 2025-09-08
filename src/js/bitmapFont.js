@@ -409,6 +409,17 @@ export default class TextWriter {
         this.y = y;
         this.font = font;
         this.color = color
+
+        // create hidden span for accessibility
+        this.accessibleEl = document.createElement("span");
+        this.accessibleEl.textContent = message;
+        this.accessibleEl.style.position = "absolute";
+        this.accessibleEl.style.left = "-9999px"; // hide visually
+        this.accessibleEl.style.width = "1px";
+        this.accessibleEl.style.height = "1px";
+        this.accessibleEl.style.overflow = "hidden";
+        this.accessibleEl.setAttribute("aria-label", message);
+        document.body.appendChild(this.accessibleEl);
     };
 
     hello() {
@@ -431,6 +442,12 @@ export default class TextWriter {
         [...message].forEach((ch, i) => {
             this.drawChar(ctx, ch, x + i * (scale * (3 + spacing)), y, scale);
         });
+
+        // update hidden span text if message changed
+        if (this.accessibleEl.textContent !== message) {
+            this.accessibleEl.textContent = message;
+            this.accessibleEl.setAttribute("aria-label", message);
+        }
     }
 }
 
