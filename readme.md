@@ -16,10 +16,11 @@ Approach:
 1. Make Project
 2. Pixel mode full screen display with Canvas
 3. Bitmap Pixel Font
+4. JS Bundler -> Uses ESBuild and adm-zip
 
 *To Do*
 4. Scenes
-5. Music
+5. *Music <started>*
 6. Battle Turn-Based
     i. Layout
     ii. Buttons
@@ -39,4 +40,5 @@ Approach:
 11. Overworld
 12. Collisions
 13. Speech
+14. Particle Systems
 

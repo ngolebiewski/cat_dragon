@@ -1,6 +1,11 @@
 {
-  "name": "my-app",
+  "name": "cat-dragon",
   "version": "1.0.0",
   "type": "module",
-  "main": "js/game.js"
+  "main": "js/game.js",
+  "scripts": {"build": "node build.js"},
+  "devDependencies": {
+    "adm-zip": "^0.5.16",
+    "esbuild": "^0.25.9"
+  }
 }

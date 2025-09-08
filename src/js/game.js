@@ -1,5 +1,5 @@
 import TextWriter from "./bitmapFont.js";
-import { playLoop, stopLoop, eightXeightFont } from "./synth.js";
+import { playLoop, stopLoop} from "./synth.js";
 
 
 const canvas = document.getElementById("game");

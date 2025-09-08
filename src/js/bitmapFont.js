@@ -37,6 +37,7 @@ const fiveXfiveFont = {
     "9": ["111", "1 1", "111", "  1", "111"]
 };
 
+/*
 export const eightXeightFont = {
     A: [
         "  11  ",
@@ -399,6 +400,7 @@ export const eightXeightFont = {
         "      "
     ]
 }
+*/
 
 export default class TextWriter {
     constructor(ctx, message, scale = 4, x = 0, y = 0, color = "limegreen", font = fiveXfiveFont) {
