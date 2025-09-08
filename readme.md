@@ -21,6 +21,7 @@ Approach:
 *To Do*
 4. Scenes
 5. *Music <started>*
+100. SpriteSheet and importer
 6. Battle Turn-Based
     i. Layout
     ii. Buttons
