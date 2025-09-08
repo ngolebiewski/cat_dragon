@@ -19,9 +19,24 @@ Approach:
 
 *To Do*
 4. Scenes
-5. Battle
+5. Music
+6. Battle Turn-Based
     i. Layout
     ii. Buttons
     iii. die (dice)
     iv. die (death)
-... (Rest hand written TKTK)
+    ... (Rest hand written TKTK)
+7. Entity Objects
+    i. Player
+    ii. Monster
+        a. Boss
+    ii. NPC
+8. Other Objects
+    i. Scene
+    ii. Items
+9. Controls
+10. Dungeons
+11. Overworld
+12. Collisions
+13. Speech
+
