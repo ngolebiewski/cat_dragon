@@ -1,0 +1,16 @@
+body,
+html {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: monospace;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    background-color: #222;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;  /* fallback */
+   
+}
