@@ -74,7 +74,8 @@ const cat = {
   h: 8,
   scale: 4,
   frame: 0,
-  frameCount: 2
+  frameCount: 2,
+  direction: "right" // "left" or "right"
 };
 
 // --- ANIMATION CONTROL ---
@@ -88,8 +89,14 @@ window.addEventListener("keyup", (e) => { keys[e.key] = false; });
 
 // --- UPDATE CAT POSITION & ANIMATION ---
 function updateCat() {
-  if (keys["ArrowLeft"])  cat.x -= 2;
-  if (keys["ArrowRight"]) cat.x += 2;
+  if (keys["ArrowLeft"]) {
+    cat.x -= 2;
+    cat.direction = "left";
+  }
+  if (keys["ArrowRight"]) {
+    cat.x += 2;
+    cat.direction = "right";
+  }
   if (keys["ArrowUp"])    cat.y -= 2;
   if (keys["ArrowDown"])  cat.y += 2;
 
@@ -126,11 +133,24 @@ function drawBuffer() {
 
   // cat sprite
   if (catImg.complete) {
-    bctx.drawImage(
-      catImg,
-      cat.frame * cat.w, 0, cat.w, cat.h,
-      cat.x, cat.y, cat.w * cat.scale, cat.h * cat.scale
-    );
+    bctx.save();
+    if (cat.direction === "left") {
+      // flip horizontally
+      bctx.translate(cat.x + cat.w * cat.scale, cat.y);
+      bctx.scale(-1, 1);
+      bctx.drawImage(
+        catImg,
+        cat.frame * cat.w, 0, cat.w, cat.h,
+        0, 0, cat.w * cat.scale, cat.h * cat.scale
+      );
+    } else {
+      bctx.drawImage(
+        catImg,
+        cat.frame * cat.w, 0, cat.w, cat.h,
+        cat.x, cat.y, cat.w * cat.scale, cat.h * cat.scale
+      );
+    }
+    bctx.restore();
   }
 }
 
@@ -163,6 +183,7 @@ canvas.addEventListener("click", (e) => {
       soundOn = false;
     }
   }
+  setTimeout(100)
 });
 
 // --- MAIN LOOP (60 FPS) ---

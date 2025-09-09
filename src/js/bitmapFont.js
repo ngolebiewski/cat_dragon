@@ -413,15 +413,15 @@ export default class TextWriter {
         this.color = color
 
         // create hidden span for accessibility
-        this.accessibleEl = document.createElement("span");
-        this.accessibleEl.textContent = message;
-        this.accessibleEl.style.position = "absolute";
-        this.accessibleEl.style.left = "-9999px"; // hide visually
-        this.accessibleEl.style.width = "1px";
-        this.accessibleEl.style.height = "1px";
-        this.accessibleEl.style.overflow = "hidden";
-        this.accessibleEl.setAttribute("aria-label", message);
-        document.body.appendChild(this.accessibleEl);
+        // this.accessibleEl = document.createElement("span");
+        // this.accessibleEl.textContent = message;
+        // this.accessibleEl.style.position = "absolute";
+        // this.accessibleEl.style.left = "-9999px"; // hide visually
+        // this.accessibleEl.style.width = "1px";
+        // this.accessibleEl.style.height = "1px";
+        // this.accessibleEl.style.overflow = "hidden";
+        // this.accessibleEl.setAttribute("aria-label", message);
+        // document.body.appendChild(this.accessibleEl);
     };
 
     hello() {
@@ -446,10 +446,10 @@ export default class TextWriter {
         });
 
         // update hidden span text if message changed
-        if (this.accessibleEl.textContent !== message) {
-            this.accessibleEl.textContent = message;
-            this.accessibleEl.setAttribute("aria-label", message);
-        }
+        // if (this.accessibleEl.textContent !== message) {
+        //     this.accessibleEl.textContent = message;
+        //     this.accessibleEl.setAttribute("aria-label", message);
+        // }
     }
 }
 
