@@ -93,22 +93,30 @@ canvas.addEventListener("touchend", () => {
 
 function handleTouch(e) {
   e.preventDefault();
+
   const rect = canvas.getBoundingClientRect();
+
+  // Reset touches
   touches.left = touches.right = touches.up = touches.down = false;
 
   for (let i = 0; i < e.touches.length; i++) {
     const tx = (e.touches[i].clientX - rect.left - offsetX) / scale;
     const ty = (e.touches[i].clientY - rect.top - offsetY) / scale;
 
+    // Clamp to NES coordinates
+    const clampedX = Math.max(0, Math.min(BASE_WIDTH, tx));
+    const clampedY = Math.max(0, Math.min(BASE_HEIGHT, ty));
+
     // Horizontal
-    if (tx < BASE_WIDTH / 2) touches.left = true;
+    if (clampedX < BASE_WIDTH / 2) touches.left = true;
     else touches.right = true;
 
     // Vertical
-    if (ty < BASE_HEIGHT / 2) touches.up = true;
+    if (clampedY < BASE_HEIGHT / 2) touches.up = true;
     else touches.down = true;
   }
 }
+
 
 // --- UPDATE CAT POSITION & ANIMATION ---
 function updateCat() {
