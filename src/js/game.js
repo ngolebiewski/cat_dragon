@@ -66,7 +66,7 @@ resize();
 // --- BUTTONS ---
 ///////////////////////////////////
 const soundButton = { x: 0, y: 0, w: 80, h: 20, color: "pink", active: false };
-const motionButton = { x: 100, y: 0, w: 120, h: 20, color: "orange", active: true }; // starts visible
+const motionButton = { x: 100, y: 0, w: 120, h: 20, color: "orange", active: true };
 
 ///////////////////////////////////
 // --- CAT SPRITE ---
@@ -96,7 +96,7 @@ const d20 = {
   y: BASE_HEIGHT / 2,
   w: 32,
   h: 32,
-  scale: 2,
+  scale: 1,
   vx: 0,
   vy: 0,
   result: Math.floor(Math.random() * 20) + 1,
@@ -119,34 +119,85 @@ window.addEventListener("keydown", (e) => { keys[e.key] = true; });
 window.addEventListener("keyup", (e) => { keys[e.key] = false; });
 
 ///////////////////////////////////
-// --- TOUCH MOVEMENT ---
+// --- TOUCH / TAP HANDLING ---
 ///////////////////////////////////
 const touches = { left: false, right: false, up: false, down: false };
+let touchStartX = 0;
+let touchStartY = 0;
 
-canvas.addEventListener("touchstart", handleTouch, { passive: false });
+canvas.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  if (e.touches.length === 1) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }
+});
+
 canvas.addEventListener("touchmove", handleTouch, { passive: false });
-canvas.addEventListener("touchend", () => {
+
+canvas.addEventListener("touchend", (e) => {
+  if (e.changedTouches.length === 1) {
+    const dx = Math.abs(e.changedTouches[0].clientX - touchStartX);
+    const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+
+    if (dx < 10 && dy < 10) {
+      // treat small movement as a tap
+      handleCanvasTap(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+    }
+  }
   touches.left = touches.right = touches.up = touches.down = false;
 });
 
 function handleTouch(e) {
-  e.preventDefault();
   const rect = canvas.getBoundingClientRect();
-
   touches.left = touches.right = touches.up = touches.down = false;
 
   for (let i = 0; i < e.touches.length; i++) {
     const tx = (e.touches[i].clientX - rect.left - offsetX) / scale;
     const ty = (e.touches[i].clientY - rect.top - offsetY) / scale;
 
-    const clampedX = Math.max(0, Math.min(BASE_WIDTH, tx));
-    const clampedY = Math.max(0, Math.min(BASE_HEIGHT, ty));
-
-    if (clampedX < BASE_WIDTH / 2) touches.left = true;
-    else touches.right = true;
-    if (clampedY < BASE_HEIGHT / 2) touches.up = true;
-    else touches.down = true;
+    // only move cat if drag > 10px
+    if (Math.abs(tx - BASE_WIDTH/2) > 10) {
+      if (tx < BASE_WIDTH / 2) touches.left = true;
+      else touches.right = true;
+    }
+    if (Math.abs(ty - BASE_HEIGHT/2) > 10) {
+      if (ty < BASE_HEIGHT / 2) touches.up = true;
+      else touches.down = true;
+    }
   }
+}
+
+///////////////////////////////////
+// --- CLICK HANDLER (desktop)
+///////////////////////////////////
+canvas.addEventListener("click", (e) => {
+  handleCanvasTap(e.clientX, e.clientY);
+});
+
+function handleCanvasTap(clientX, clientY) {
+  const mx = (clientX - canvas.getBoundingClientRect().left - offsetX) / scale;
+  const my = (clientY - canvas.getBoundingClientRect().top - offsetY) / scale;
+
+  // Motion button
+  if (motionButton.active &&
+      mx > motionButton.x && mx < motionButton.x + motionButton.w &&
+      my > motionButton.y && my < motionButton.y + motionButton.h) {
+    motionButton.active = false;
+    requestMotionPermission();
+    return true;
+  }
+
+  // Sound button
+  if (mx > soundButton.x && mx < soundButton.x + soundButton.w &&
+      my > soundButton.y && my < soundButton.y + soundButton.h) {
+    soundButton.active = !soundButton.active;
+    if (soundButton.active) playLoop();
+    else stopLoop();
+    return true;
+  }
+
+  return false;
 }
 
 ///////////////////////////////////
@@ -197,7 +248,6 @@ function startMotionTracking() {
       if (!shaking) shaking = true;
       lastShakeTime = now;
 
-      // random velocity kick
       d20.vx += (Math.random() - 0.5) * 4;
       d20.vy += (Math.random() - 0.5) * 4;
     } else if (shaking && now - lastShakeTime > 300) {
@@ -216,11 +266,9 @@ function updateD20() {
   d20.x += d20.vx;
   d20.y += d20.vy;
 
-  // friction
   d20.vx *= 0.95;
   d20.vy *= 0.95;
 
-  // bounds
   if (d20.x < 0) { d20.x = 0; d20.vx *= -0.8; }
   if (d20.x > BASE_WIDTH - d20.w) { d20.x = BASE_WIDTH - d20.w; d20.vx *= -0.8; }
   if (d20.y < 0) { d20.y = 0; d20.vy *= -0.8; }
@@ -228,7 +276,6 @@ function updateD20() {
 
   const speed = Math.abs(d20.vx) + Math.abs(d20.vy);
 
-  // settling phase wobble
   if (d20.settling) {
     d20.settleTimer--;
     if (d20.settleTimer <= 0) {
@@ -237,13 +284,11 @@ function updateD20() {
       d20.settling = false;
       console.log("Final roll:", d20.result);
     } else {
-      // tiny wobble
       d20.vx += (Math.random() - 0.5) * 0.2;
       d20.vy += (Math.random() - 0.5) * 0.2;
     }
   }
 
-  // number cycling
   if (!d20.settling || d20.settleTimer > 0) {
     const cycleSpeed = Math.abs(d20.vx) + Math.abs(d20.vy);
     if (cycleSpeed > 0.1 && Date.now() > d20.nextUpdate) {
@@ -260,7 +305,6 @@ function drawBuffer() {
   bctx.fillStyle = "grey";
   bctx.fillRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
 
-  // Text
   bctx.fillStyle = "limegreen";
   new TextWriter(bctx, "Cat Dragon", 6, 10, BASE_HEIGHT / 2 - 20).drawText();
 
@@ -273,7 +317,7 @@ function drawBuffer() {
   bctx.textBaseline = "middle";
   bctx.fillText(soundButton.active ? "Sound On" : "Sound Off", soundButton.x + soundButton.w/2, soundButton.y + soundButton.h/2);
 
-  // Motion Button (if active)
+  // Motion Button
   if (motionButton.active) {
     bctx.fillStyle = motionButton.color;
     bctx.fillRect(motionButton.x, motionButton.y, motionButton.w, motionButton.h);
@@ -283,8 +327,6 @@ function drawBuffer() {
 
   // D20
   bctx.drawImage(d20Img, 0, 0, d20.w, d20.h, d20.x, d20.y, d20.w*d20.scale, d20.h*d20.scale);
-
-  // Number on die
   bctx.fillStyle = "white";
   bctx.textAlign = "center";
   bctx.textBaseline = "middle";
@@ -311,41 +353,14 @@ function drawBuffer() {
 function render() {
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(buffer, 0, 0, BASE_WIDTH, BASE_HEIGHT, offsetX, offsetY, BASE_WIDTH*scale, BASE_HEIGHT*scale);
+  ctx.drawImage(buffer, 0, 0, BASE_WIDTH, BASE_HEIGHT, offsetX, offsetY, BASE_WIDTH * scale, BASE_HEIGHT * scale);
 }
-
-///////////////////////////////////
-// --- CANVAS CLICK HANDLER ---
-///////////////////////////////////
-canvas.addEventListener("click", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const mx = (e.clientX - rect.left - offsetX)/scale;
-  const my = (e.clientY - rect.top - offsetY)/scale;
-
-  // Motion button
-  if (motionButton.active &&
-      mx > motionButton.x && mx < motionButton.x + motionButton.w &&
-      my > motionButton.y && my < motionButton.y + motionButton.h) {
-    motionButton.active = false;
-    requestMotionPermission();
-    return;
-  }
-
-  // Sound button
-  if (mx > soundButton.x && mx < soundButton.x + soundButton.w &&
-      my > soundButton.y && my < soundButton.y + soundButton.h) {
-    soundButton.active = !soundButton.active;
-    if (soundButton.active) playLoop();
-    else stopLoop();
-    return;
-  }
-});
 
 ///////////////////////////////////
 // --- MAIN LOOP ---
 ///////////////////////////////////
 let lastTime = 0;
-const FRAME_DURATION = 1000/60;
+const FRAME_DURATION = 1000 / 60;
 
 function loop(timestamp) {
   if (timestamp - lastTime >= FRAME_DURATION) {
