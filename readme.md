@@ -10,6 +10,10 @@ Approach:
 - No Libraries, just browser APIs (i.e. Canvas, AudioContext).
 - 5 minute and 1 regular search rule before referencing AI.
 
+# Notes
+
+9/10/25 Three days left and 98% of the way to go before the end of the game jam!
+
 # Issue List
 
 *Completed*

@@ -62,15 +62,11 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-///////////////////////////////////
-// --- BUTTONS ---
-///////////////////////////////////
-const soundButton = { x: 0, y: 0, w: 80, h: 20, color: "pink", active: false };
-const motionButton = { x: 100, y: 0, w: 120, h: 20, color: "orange", active: true }; // starts visible
+// --- BUTTON ---
+const button = { x: 0, y: 0, w: 80, h: 20, color: "pink" };
+let soundOn = false;
 
-///////////////////////////////////
 // --- CAT SPRITE ---
-///////////////////////////////////
 const catImg = new Image();
 catImg.src = "images/cat1x2.png";
 
@@ -85,9 +81,7 @@ const cat = {
   direction: "right"
 };
 
-///////////////////////////////////
 // --- D20 SPRITE ---
-///////////////////////////////////
 const d20Img = new Image();
 d20Img.src = "images/d20.gif";
 
@@ -96,31 +90,23 @@ const d20 = {
   y: BASE_HEIGHT / 2,
   w: 32,
   h: 32,
-  scale: 2,
-  vx: 0,
-  vy: 0,
-  result: Math.floor(Math.random() * 20) + 1,
-  nextUpdate: 0,
-  settling: false,
-  settleTimer: 0
+  scale: 1,
+  frame: 0,
+  frameCount: 1,
+  vx: 0, // velocity x
+  vy: 0  // velocity y
 };
 
-///////////////////////////////////
 // --- ANIMATION CONTROL ---
-///////////////////////////////////
 let frameCounter = 0;
 const FRAME_DELAY = 10;
 
-///////////////////////////////////
 // --- KEYBOARD MOVEMENT ---
-///////////////////////////////////
 const keys = {};
 window.addEventListener("keydown", (e) => { keys[e.key] = true; });
 window.addEventListener("keyup", (e) => { keys[e.key] = false; });
 
-///////////////////////////////////
 // --- TOUCH MOVEMENT ---
-///////////////////////////////////
 const touches = { left: false, right: false, up: false, down: false };
 
 canvas.addEventListener("touchstart", handleTouch, { passive: false });
@@ -131,27 +117,32 @@ canvas.addEventListener("touchend", () => {
 
 function handleTouch(e) {
   e.preventDefault();
+
   const rect = canvas.getBoundingClientRect();
 
+  // Reset touches
   touches.left = touches.right = touches.up = touches.down = false;
 
   for (let i = 0; i < e.touches.length; i++) {
     const tx = (e.touches[i].clientX - rect.left - offsetX) / scale;
     const ty = (e.touches[i].clientY - rect.top - offsetY) / scale;
 
+    // Clamp to NES coordinates
     const clampedX = Math.max(0, Math.min(BASE_WIDTH, tx));
     const clampedY = Math.max(0, Math.min(BASE_HEIGHT, ty));
 
+    // Horizontal
     if (clampedX < BASE_WIDTH / 2) touches.left = true;
     else touches.right = true;
+
+    // Vertical
     if (clampedY < BASE_HEIGHT / 2) touches.up = true;
     else touches.down = true;
   }
 }
 
-///////////////////////////////////
-// --- UPDATE CAT ---
-///////////////////////////////////
+
+// --- UPDATE CAT POSITION & ANIMATION ---
 function updateCat() {
   if (keys["ArrowLeft"] || touches.left) { cat.x -= 2; cat.direction = "left"; }
   if (keys["ArrowRight"] || touches.right) { cat.x += 2; cat.direction = "right"; }
@@ -168,130 +159,44 @@ function updateCat() {
   }
 }
 
-///////////////////////////////////
-// --- D20 ROLLING / SHAKE ---
-///////////////////////////////////
-let shaking = false;
-let lastShakeTime = 0;
+////////////////////////////////////////////////
+// -- D20 ROLLING!
+////////////////////////////////////////////////
 
-async function requestMotionPermission() {
-  if (typeof DeviceMotionEvent.requestPermission === "function") {
-    const response = await DeviceMotionEvent.requestPermission();
-    if (response === "granted") startMotionTracking();
-  } else startMotionTracking();
-}
 
-function startMotionTracking() {
-  window.addEventListener("devicemotion", (event) => {
-    const acc = event.accelerationIncludingGravity;
-    if (!acc) return;
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+///////////////////  ///////////////////////////
+///////////////// 20   /////////////////////////
+///////////////////  ///////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
 
-    const x = acc.x || 0;
-    const y = acc.y || 0;
-    const z = acc.z || 0;
-
-    const magnitude = Math.sqrt(x*x + y*y + z*z);
-    const now = Date.now();
-
-    if (magnitude > 20) { 
-      if (!shaking) shaking = true;
-      lastShakeTime = now;
-
-      // random velocity kick
-      d20.vx += (Math.random() - 0.5) * 4;
-      d20.vy += (Math.random() - 0.5) * 4;
-    } else if (shaking && now - lastShakeTime > 300) {
-      shaking = false;
-      onShakeRelease();
-    }
-  });
-}
-
-function onShakeRelease() {
-  d20.settling = true;
-  d20.settleTimer = 2 * 60; // 2 beats
-}
-
-function updateD20() {
-  d20.x += d20.vx;
-  d20.y += d20.vy;
-
-  // friction
-  d20.vx *= 0.95;
-  d20.vy *= 0.95;
-
-  // bounds
-  if (d20.x < 0) { d20.x = 0; d20.vx *= -0.8; }
-  if (d20.x > BASE_WIDTH - d20.w) { d20.x = BASE_WIDTH - d20.w; d20.vx *= -0.8; }
-  if (d20.y < 0) { d20.y = 0; d20.vy *= -0.8; }
-  if (d20.y > BASE_HEIGHT - d20.h) { d20.y = BASE_HEIGHT - d20.h; d20.vy *= -0.8; }
-
-  const speed = Math.abs(d20.vx) + Math.abs(d20.vy);
-
-  // settling phase wobble
-  if (d20.settling) {
-    d20.settleTimer--;
-    if (d20.settleTimer <= 0) {
-      d20.vx = 0;
-      d20.vy = 0;
-      d20.settling = false;
-      console.log("Final roll:", d20.result);
-    } else {
-      // tiny wobble
-      d20.vx += (Math.random() - 0.5) * 0.2;
-      d20.vy += (Math.random() - 0.5) * 0.2;
-    }
-  }
-
-  // number cycling
-  if (!d20.settling || d20.settleTimer > 0) {
-    const cycleSpeed = Math.abs(d20.vx) + Math.abs(d20.vy);
-    if (cycleSpeed > 0.1 && Date.now() > d20.nextUpdate) {
-      d20.result = Math.floor(Math.random() * 20) + 1;
-      d20.nextUpdate = Date.now() + Math.max(50, 500 - cycleSpeed * 20);
-    }
-  }
-}
-
-///////////////////////////////////
 // --- DRAW BUFFER ---
-///////////////////////////////////
 function drawBuffer() {
   bctx.fillStyle = "grey";
   bctx.fillRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
 
-  // Text
   bctx.fillStyle = "limegreen";
   new TextWriter(bctx, "Cat Dragon", 6, 10, BASE_HEIGHT / 2 - 20).drawText();
 
-  // Sound Button
-  bctx.fillStyle = soundButton.color;
-  bctx.fillRect(soundButton.x, soundButton.y, soundButton.w, soundButton.h);
+  bctx.fillStyle = button.color;
+  bctx.fillRect(button.x, button.y, button.w, button.h);
   bctx.fillStyle = "black";
   bctx.font = "10px monospace";
   bctx.textAlign = "center";
   bctx.textBaseline = "middle";
-  bctx.fillText(soundButton.active ? "Sound On" : "Sound Off", soundButton.x + soundButton.w/2, soundButton.y + soundButton.h/2);
+  bctx.fillText(soundOn ? "Sound On" : "Sound Off", button.x + button.w / 2, button.y + button.h / 2);
 
-  // Motion Button (if active)
-  if (motionButton.active) {
-    bctx.fillStyle = motionButton.color;
-    bctx.fillRect(motionButton.x, motionButton.y, motionButton.w, motionButton.h);
-    bctx.fillStyle = "black";
-    bctx.fillText("Enable Motion", motionButton.x + motionButton.w/2, motionButton.y + motionButton.h/2);
-  }
+  bctx.drawImage(d20Img,d20.frame * d20.w, 0, d20.w, d20.h, 0, 0, d20.w * d20.scale, d20.h * d20.scale);
 
-  // D20
-  bctx.drawImage(d20Img, 0, 0, d20.w, d20.h, d20.x, d20.y, d20.w*d20.scale, d20.h*d20.scale);
-
-  // Number on die
-  bctx.fillStyle = "white";
-  bctx.textAlign = "center";
-  bctx.textBaseline = "middle";
-  bctx.font = "10px monospace";
-  bctx.fillText(d20.result, d20.x + (d20.w*d20.scale)/2, d20.y + (d20.h*d20.scale)/2);
-
-  // Cat
   if (catImg.complete) {
     bctx.save();
     if (cat.direction === "left") {
@@ -305,53 +210,35 @@ function drawBuffer() {
   }
 }
 
-///////////////////////////////////
 // --- RENDER BUFFER ---
-///////////////////////////////////
 function render() {
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(buffer, 0, 0, BASE_WIDTH, BASE_HEIGHT, offsetX, offsetY, BASE_WIDTH*scale, BASE_HEIGHT*scale);
+
+  ctx.drawImage(buffer, 0, 0, BASE_WIDTH, BASE_HEIGHT, offsetX, offsetY, BASE_WIDTH * scale, BASE_HEIGHT * scale);
 }
 
-///////////////////////////////////
-// --- CANVAS CLICK HANDLER ---
-///////////////////////////////////
+// --- CLICK BUTTON ---
 canvas.addEventListener("click", (e) => {
   const rect = canvas.getBoundingClientRect();
-  const mx = (e.clientX - rect.left - offsetX)/scale;
-  const my = (e.clientY - rect.top - offsetY)/scale;
+  const mx = (e.clientX - rect.left - offsetX) / scale;
+  const my = (e.clientY - rect.top - offsetY) / scale;
 
-  // Motion button
-  if (motionButton.active &&
-      mx > motionButton.x && mx < motionButton.x + motionButton.w &&
-      my > motionButton.y && my < motionButton.y + motionButton.h) {
-    motionButton.active = false;
-    requestMotionPermission();
-    return;
+  if (mx > button.x && mx < button.x + button.w && my > button.y && my < button.y + button.h) {
+    if (!soundOn) { playLoop(); soundOn = true; }
+    else { stopLoop(); soundOn = false; }
   }
-
-  // Sound button
-  if (mx > soundButton.x && mx < soundButton.x + soundButton.w &&
-      my > soundButton.y && my < soundButton.y + soundButton.h) {
-    soundButton.active = !soundButton.active;
-    if (soundButton.active) playLoop();
-    else stopLoop();
-    return;
-  }
+  setTimeout(100)
 });
 
-///////////////////////////////////
-// --- MAIN LOOP ---
-///////////////////////////////////
+// --- MAIN LOOP (60 FPS) ---
 let lastTime = 0;
-const FRAME_DURATION = 1000/60;
+const FRAME_DURATION = 1000 / 60;
 
 function loop(timestamp) {
   if (timestamp - lastTime >= FRAME_DURATION) {
     lastTime = timestamp;
     updateCat();
-    updateD20();
     drawBuffer();
     render();
   }

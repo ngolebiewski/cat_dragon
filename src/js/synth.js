@@ -1,5 +1,5 @@
 const AudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const bpm = 190;
+const bpm = 180;
 const beatTime = 60 / bpm;
 const Cminor = [261.63, 293.66, 311.13, 349.23, 392.0, 415.3, 466.16];
 
