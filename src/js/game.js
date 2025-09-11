@@ -197,8 +197,26 @@ function handleCanvasTap(clientX, clientY) {
     return true;
   }
 
+  // D20 click
+  if (mx > d20.x && mx < d20.x + d20.w * d20.scale &&
+      my > d20.y && my < d20.y + d20.h * d20.scale) {
+
+    shaking = true;
+    lastShakeTime = Date.now();
+    d20.vx = (Math.random() - 0.5) * 80;
+    d20.vy = (Math.random() - 0.5) * 80;
+
+    setTimeout(() => {
+      shaking = false;
+      onShakeRelease();
+    }, 1000); // 1 second shake
+
+    return true;
+  }
+
   return false;
 }
+
 
 ///////////////////////////////////
 // --- UPDATE CAT ---
@@ -248,8 +266,8 @@ function startMotionTracking() {
       if (!shaking) shaking = true;
       lastShakeTime = now;
 
-      d20.vx += (Math.random() - 0.5) * 4;
-      d20.vy += (Math.random() - 0.5) * 4;
+      d20.vx += (Math.random() - 0.5) * 50;
+      d20.vy += (Math.random() - 0.5) * 50;
     } else if (shaking && now - lastShakeTime > 300) {
       shaking = false;
       onShakeRelease();
@@ -302,7 +320,7 @@ function updateD20() {
 // --- DRAW BUFFER ---
 ///////////////////////////////////
 function drawBuffer() {
-  bctx.fillStyle = "grey";
+  bctx.fillStyle = "#333";
   bctx.fillRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
 
   bctx.fillStyle = "limegreen";
@@ -327,7 +345,7 @@ function drawBuffer() {
 
   // D20
   bctx.drawImage(d20Img, 0, 0, d20.w, d20.h, d20.x, d20.y, d20.w*d20.scale, d20.h*d20.scale);
-  bctx.fillStyle = "white";
+  bctx.fillStyle = "black";
   bctx.textAlign = "center";
   bctx.textBaseline = "middle";
   bctx.font = "10px monospace";
