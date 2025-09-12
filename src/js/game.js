@@ -33,31 +33,38 @@ let offsetY = 0;
 
 function resize() {
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = window.innerWidth * dpr;
-  canvas.height = window.innerHeight * dpr;
-  canvas.style.width = `${window.innerWidth}px`;
-  canvas.style.height = `${window.innerHeight}px`;
 
-  let scaleX = Math.floor(canvas.width / (BASE_WIDTH * dpr));
-  let scaleY = Math.floor(canvas.height / (BASE_HEIGHT * dpr));
-  scale = Math.max(1, Math.min(scaleX, scaleY));
+  // Viewport in CSS pixels
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
 
-  if (scale < 2) {
-    scale = Math.min(
-      canvas.width / (BASE_WIDTH * dpr),
-      canvas.height / (BASE_HEIGHT * dpr)
-    );
-  }
+  // Compute scale to fit entire viewport
+  const scaleX = vw / BASE_WIDTH;
+  const scaleY = vh / BASE_HEIGHT;
+  scale = Math.min(scaleX, scaleY); // scale dynamically to fit viewport
 
+  // Compute final display size
   const displayW = BASE_WIDTH * scale;
   const displayH = BASE_HEIGHT * scale;
-  offsetX = (window.innerWidth - displayW) / 2;
-  offsetY = (window.innerHeight - displayH) / 2;
 
+  // Center offsets
+  offsetX = (vw - displayW) / 2;
+  offsetY = (vh - displayH) / 2;
+
+  // Canvas backing store matches device pixels
+  canvas.width = vw * dpr;
+  canvas.height = vh * dpr;
+
+  // Canvas CSS size matches viewport
+  canvas.style.width = `${vw}px`;
+  canvas.style.height = `${vh}px`;
+
+  // Reset transform and scale for DPR
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.scale(dpr, dpr);
   ctx.imageSmoothingEnabled = false;
 }
+
 
 window.addEventListener("resize", resize);
 resize();

@@ -17,12 +17,16 @@ Approach:
 # Issue List
 
 *Completed*
-1. Make Project
-2. Pixel mode full screen display with Canvas
-3. Bitmap Pixel Font
-4. JS Bundler -> Uses ESBuild and adm-zip
+-  Make Project
+- Pixel mode full screen display with Canvas
+- Bitmap Pixel Font
+- JS Bundler -> Uses ESBuild and adm-zip
+
+## Bugs
+- Weird scrolling on js13k site, check css
 
 *To Do*
+
 4. Scenes
 5. *Music <started>*
 6. Battle Turn-Based
