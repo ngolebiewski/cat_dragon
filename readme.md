@@ -25,7 +25,6 @@ Approach:
 *To Do*
 4. Scenes
 5. *Music <started>*
-100. SpriteSheet and importer
 6. Battle Turn-Based
     i. Layout
     ii. Buttons
@@ -45,5 +44,7 @@ Approach:
 11. Overworld
 12. Collisions
 13. Speech
-14. Particle Systems
+14. Art
+15. Particle Systems
+
 
